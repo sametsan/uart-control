@@ -1,26 +1,28 @@
 #include "debug.h"
 #include "led.h"
 
+
 #define USART_BAUDRATE 115200
 #define LED_PIN 2
 #define DEBUG_LED_PIN 3
 
 
 String command;
-bool is_active_echo = true;
-
 LED led(LED_PIN);
-LED debug_led(DEBUG_LED_PIN);
+bool echo_activation=true;
 
-void command_parse() {
+
+void command_parse(String command) {
+
+  if (command.length() == 0) return;
 
   if (!command.compareTo("start")) {
-    is_active_echo = true;
+    echo_activation = true;
     debugln("Echo started");
   }
 
   if (!command.compareTo("stop")) {
-    is_active_echo = false;
+    echo_activation = false;
     debugln("Echo Stopped");
   }
 
@@ -40,42 +42,40 @@ void command_parse() {
     debugln(led_off_time);
   }
 
-  // Command buffer clear
-  command.remove(0, command.length());
+
 }
 
 void setup() {
   // Serial select baudrate
   Serial.begin(USART_BAUDRATE);
-
-  // Pin mode select
-  pinMode(3, OUTPUT);
 }
 
 
 void serialEvent() {
-  debug_led.on();
+
+  // Command buffer clear
+  command.remove(0,command.length());
 
   while (Serial.available()) {
     char ch = (char)Serial.read();
 
     // If command is end,break while
     if (ch == '\n')
-      break;
+       break;
+     
     command += ch;
+    delay(5);
   }
 
-  command_parse();
+  command_parse(command);
 
-  if (is_active_echo)
+  if (echo_activation)
     Serial.println(command.c_str());
-
-  debug_led.off();
+    
 }
 
 void loop() {
 
   led.run();
-
 
 }

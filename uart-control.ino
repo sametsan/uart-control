@@ -1,11 +1,16 @@
 #include "debug.h"
+#include "led.h"
 
-#define USART_BAUDRATE 9600
+#define USART_BAUDRATE 115200
+#define LED_PIN 2
+#define DEBUG_LED_PIN 3
 
 
-int timeout = 300;
 String command;
 bool is_active_echo = true;
+
+LED led(LED_PIN);
+LED debug_led(DEBUG_LED_PIN);
 
 void command_parse() {
 
@@ -22,15 +27,17 @@ void command_parse() {
   int index = command.indexOf('=');
 
   if (!command.substring(0, index).compareTo("ledon")) {
-    timeout = command.substring(index + 1).toInt();
+    int led_on_time = command.substring(index + 1).toInt();
+    led.set_on_timeout(led_on_time);
     debug("Led on time = ");
-    debugln(timeout);
+    debugln(led_on_time);
   }
 
   if (!command.substring(0, index).compareTo("ledoff")) {
-    timeout = 1000 - command.substring(index + 1).toInt();
+    int led_off_time = command.substring(index + 1).toInt();
+    led.set_off_timeout(led_off_time);
     debug("Led off time = ");
-    debugln(1000 - timeout);
+    debugln(led_off_time);
   }
 
   // Command buffer clear
@@ -42,13 +49,12 @@ void setup() {
   Serial.begin(USART_BAUDRATE);
 
   // Pin mode select
-  pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
 }
 
 
 void serialEvent() {
-  digitalWrite(3, HIGH);
+  debug_led.on();
 
   while (Serial.available()) {
     char ch = (char)Serial.read();
@@ -64,16 +70,12 @@ void serialEvent() {
   if (is_active_echo)
     Serial.println(command.c_str());
 
-  digitalWrite(3, LOW);
+  debug_led.off();
 }
 
 void loop() {
 
+  led.run();
 
-
-  digitalWrite(2, LOW);
-  delay(1000 - timeout);
-  digitalWrite(2, HIGH);
-  delay(timeout);
 
 }

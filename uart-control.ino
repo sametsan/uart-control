@@ -1,14 +1,7 @@
+#include "debug.h"
+
 #define USART_BAUDRATE 9600
 
-#define DEBUG
-
-#ifdef DEBUG
-#define debug(...) Serial.print(__VA_ARGS__)
-#define debugln(...) Serial.println(__VA_ARGS__)
-#else
-#define debugln(...)
-#define debug(...)
-#endif
 
 int timeout = 300;
 String command;
